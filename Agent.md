@@ -7,6 +7,7 @@
 ## 当前实现策略
 
 - 仅在 `APP-PLUS` Android 环境运行短信监听逻辑。
+- 页面代码使用 Vue3 `<script setup>` 写法。
 - 使用 `plus.android` 动态注册 `android.provider.Telephony.SMS_RECEIVED` 广播。
 - 通过 `android.provider.Telephony$Sms$Intents.getMessagesFromIntent(intent)` 解析短信。
 - 当前版本用于前台或进程存活时验证；如果要 App 被杀后仍监听，需要改为 Android 原生插件或静态 Receiver。
