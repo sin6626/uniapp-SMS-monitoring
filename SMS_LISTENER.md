@@ -8,6 +8,7 @@
 
 - 工具方法：`utils/smsListener.js`
 - Demo 页面：`pages/index/index.vue`
+- 测试页面：`pages/records/index.vue`、`pages/status/index.vue`
 - Android 权限：`manifest.json`
 
 ## 暴露方法
@@ -30,6 +31,8 @@
 8. 收到短信广播后，通过 `android.provider.Telephony$Sms$Intents.getMessagesFromIntent(intent)` 解析短信。
 9. 将短信内容存入工具模块内存列表，并触发 `uni.$emit('sms:received', sms)`。
 10. Demo 页面监听 `sms:received` 事件，然后调用 `getListeningContent()` 刷新展示。
+
+切换到底部 tabBar 的“记录”或“状态”页面后，页面同样读取 `getListeningContent()`，用于验证离开监听页后是否还能收到短信。
 
 ## 后台监听说明
 

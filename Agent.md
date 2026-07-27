@@ -13,6 +13,7 @@
 - 通过 `android.provider.Telephony$Sms$Intents.getMessagesFromIntent(intent)` 解析短信。
 - 当前版本用于前台或进程存活时验证；如果要 App 被杀后仍监听，需要改为 Android 原生插件或静态 Receiver。
 - 根目录 `SMS_LISTENER.md` 记录了实现流程和后台监听边界。
+- 当前有三个 tabBar 页面：`pages/index/index` 负责启动监听，`pages/records/index` 展示短信记录，`pages/status/index` 展示监听状态并可开始/停止监听。
 
 ## 项目规则
 

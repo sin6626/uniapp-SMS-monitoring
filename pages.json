@@ -3,7 +3,19 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "短信监听"
+			}
+		},
+		{
+			"path": "pages/records/index",
+			"style": {
+				"navigationBarTitleText": "短信记录"
+			}
+		},
+		{
+			"path": "pages/status/index",
+			"style": {
+				"navigationBarTitleText": "监听状态"
 			}
 		}
 	],
@@ -12,6 +24,26 @@
 		"navigationBarTitleText": "uni-app",
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#6b7280",
+		"selectedColor": "#2563eb",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "监听"
+			},
+			{
+				"pagePath": "pages/records/index",
+				"text": "记录"
+			},
+			{
+				"pagePath": "pages/status/index",
+				"text": "状态"
+			}
+		]
 	},
 	"uniIdRouter": {}
 }
