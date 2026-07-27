@@ -17,6 +17,24 @@
 			"style": {
 				"navigationBarTitleText": "监听状态"
 			}
+		},
+		{
+			"path": "pages/probe-a/index",
+			"style": {
+				"navigationBarTitleText": "普通页 A"
+			}
+		},
+		{
+			"path": "pages/probe-b/index",
+			"style": {
+				"navigationBarTitleText": "普通页 B"
+			}
+		},
+		{
+			"path": "pages/probe-c/index",
+			"style": {
+				"navigationBarTitleText": "普通页 C"
+			}
 		}
 	],
 	"globalStyle": {

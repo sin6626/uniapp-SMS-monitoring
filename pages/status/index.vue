@@ -15,6 +15,8 @@
 			<button class="primary" :disabled="listening" @click="startListening">开始监听</button>
 			<button class="secondary" :disabled="!listening" @click="stopListening">停止监听</button>
 		</view>
+
+		<button class="link" @click="openProbePage">进入普通测试页</button>
 	</view>
 </template>
 
@@ -53,6 +55,10 @@
 	function stopListening() {
 		stopSmsListening()
 		syncState()
+	}
+
+	function openProbePage() {
+		uni.navigateTo({ url: '/pages/probe-a/index' })
 	}
 
 	function syncState() {
@@ -130,5 +136,11 @@
 	.secondary {
 		background: #ffffff;
 		color: #111827;
+	}
+
+	.link {
+		margin-top: 20rpx;
+		background: #111827;
+		color: #ffffff;
 	}
 </style>

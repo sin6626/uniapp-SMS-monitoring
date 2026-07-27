@@ -9,6 +9,7 @@
 - 工具方法：`utils/smsListener.js`
 - Demo 页面：`pages/index/index.vue`
 - 测试页面：`pages/records/index.vue`、`pages/status/index.vue`
+- 普通页面测试链路：`pages/probe-a/index.vue` -> `pages/probe-b/index.vue` -> `pages/probe-c/index.vue`
 - Android 权限：`manifest.json`
 
 ## 暴露方法
@@ -33,6 +34,8 @@
 10. Demo 页面监听 `sms:received` 事件，然后调用 `getListeningContent()` 刷新展示。
 
 切换到底部 tabBar 的“记录”或“状态”页面后，页面同样读取 `getListeningContent()`，用于验证离开监听页后是否还能收到短信。
+
+也可以从“状态”tab 进入普通测试页 A，再继续进入 B、C。普通页面只监听 `sms:received` 事件并读取 `getListeningContent()`，不会调用 `stopListening()`，用于验证 `navigateTo` 页面栈变化时短信监听是否还在。
 
 ## 后台监听说明
 
