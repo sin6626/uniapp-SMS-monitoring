@@ -5,6 +5,21 @@
 			<text :class="['badge', listening ? 'badge-on' : '']">{{ listening ? '监听中' : '未监听' }}</text>
 		</view>
 
+		<view class="filter">
+			<input
+				class="filter-input"
+				:value="filterDate"
+				placeholder="2025年11月30日"
+				confirm-type="search"
+				@confirm="applyFilter"
+				@input="filterDate = $event.detail.value"
+			/>
+			<button class="filter-button" @click="applyFilter">筛选</button>
+			<button class="filter-button secondary" @click="clearFilter">全部</button>
+		</view>
+
+		<text class="filter-tip">{{ activeFilter ? `收到时间：${activeFilter} 及之后` : '当前显示全部 ETC 记录' }}</text>
+
 		<view class="logs">
 			<view v-if="!records.length" class="empty">暂无 ETC 短信</view>
 			<view v-for="item in records" :key="item.id" class="log-item">
@@ -26,6 +41,8 @@
 
 	const listening = ref(false)
 	const records = ref([])
+	const filterDate = ref('')
+	const activeFilter = ref('')
 
 	onLoad(() => {
 		syncState()
@@ -41,9 +58,20 @@
 	})
 
 	function syncState() {
-		const state = getListeningContent()
+		const state = getListeningContent(activeFilter.value)
 		listening.value = state.listening
 		records.value = state.etcRecords
+	}
+
+	function applyFilter() {
+		activeFilter.value = filterDate.value.trim()
+		syncState()
+	}
+
+	function clearFilter() {
+		filterDate.value = ''
+		activeFilter.value = ''
+		syncState()
 	}
 
 	function getSummary(item) {
@@ -87,6 +115,45 @@
 	.badge-on {
 		background: #d1fae5;
 		color: #047857;
+	}
+
+	.filter {
+		display: grid;
+		grid-template-columns: 1fr 132rpx 132rpx;
+		gap: 12rpx;
+		margin-bottom: 12rpx;
+	}
+
+	.filter-input {
+		height: 80rpx;
+		padding: 0 20rpx;
+		border: 1rpx solid #e5e7eb;
+		border-radius: 8rpx;
+		background: #ffffff;
+		color: #111827;
+		font-size: 28rpx;
+		box-sizing: border-box;
+	}
+
+	.filter-button {
+		height: 80rpx;
+		border-radius: 8rpx;
+		background: #2563eb;
+		color: #ffffff;
+		font-size: 26rpx;
+		line-height: 80rpx;
+	}
+
+	.secondary {
+		background: #ffffff;
+		color: #111827;
+	}
+
+	.filter-tip {
+		display: block;
+		margin-bottom: 24rpx;
+		color: #6b7280;
+		font-size: 24rpx;
 	}
 
 	.logs {

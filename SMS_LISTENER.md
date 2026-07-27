@@ -80,4 +80,6 @@ const data = state.etcRecords
 
 这里的 `2025年11月30日` 会按当天 `00:00:00` 及之后计算；如果短信原文里没有通行日期，也不影响筛选。
 
+“记录”tab 顶部提供了日期输入框，可直接输入 `2025年11月30日` 测试这个筛选逻辑。
+
 解析逻辑可运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/check-etc-sms-parser.ps1` 做快速检查。
