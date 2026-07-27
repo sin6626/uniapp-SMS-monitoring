@@ -51,5 +51,21 @@
 
 - 写入 `utils/smsListener.js` 内部的最近 20 条短信列表。
 - 触发 `uni.$emit('sms:received', sms)`。
+- 如果匹配 ETC 消费短信，会解析关键信息并写入本地缓存，同时触发 `uni.$emit('etc-sms:received', record)`。
 
 后续如果要做转发接口、关键词匹配、自动弹窗或本地存储，优先接 `sms:received` 事件，或者定时调用 `getListeningContent()` 读取短信列表。
+
+## ETC 短信缓存
+
+ETC 短信逻辑在 `utils/etcSmsStore.js`。
+
+当前只匹配类似“车辆（****9R0）于2025年11月30日在湖南灌溪站驶入，至湖南长沙西站驶出，共计消费71.85元”的短信。
+
+缓存使用 uni-app 本地存储，不使用 Pinia：
+
+- `etc_sms_record_index` 保存最多 500 条轻量索引。
+- `etc_sms_record:<id>` 保存单条完整记录。
+
+单条完整记录包含车牌、通行日期、入口站、出口站、金额、短信发送方、接收时间和原文 `rawText`。这种方式避免把大量短信原文全塞进一个大数组里。
+
+解析逻辑可运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/check-etc-sms-parser.ps1` 做快速检查。

@@ -1,3 +1,5 @@
+import { getEtcSmsRecords, saveEtcSms } from './etcSmsStore.js'
+
 const SMS_PERMISSION = 'android.permission.RECEIVE_SMS'
 const SMS_RECEIVED_ACTION = 'android.provider.Telephony.SMS_RECEIVED'
 
@@ -67,7 +69,8 @@ export function getListeningContent() {
 		listening: registered,
 		permissionText,
 		platformText,
-		messages: smsMessages.slice()
+		messages: smsMessages.slice(),
+		etcRecords: getEtcSmsRecords()
 	}
 }
 
@@ -130,7 +133,9 @@ function handleSmsIntent(intent) {
 function handleSmsReceived(sms) {
 	smsMessages.unshift(sms)
 	smsMessages = smsMessages.slice(0, 20)
+	const etcRecord = saveEtcSms(sms)
 	uni.$emit('sms:received', sms)
+	if (etcRecord) uni.$emit('etc-sms:received', etcRecord)
 	uni.showToast({ title: '收到短信', icon: 'none' })
 }
 

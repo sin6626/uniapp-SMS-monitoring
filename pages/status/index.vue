@@ -9,6 +9,7 @@
 			<text>权限：{{ permissionText }}</text>
 			<text>平台：{{ platformText }}</text>
 			<text>短信条数：{{ count }}</text>
+			<text>ETC记录：{{ etcCount }}</text>
 		</view>
 
 		<view class="actions">
@@ -33,6 +34,7 @@
 	const permissionText = ref('未申请')
 	const platformText = ref('非 Android App')
 	const count = ref(0)
+	const etcCount = ref(0)
 
 	onLoad(() => {
 		syncState()
@@ -67,6 +69,7 @@
 		permissionText.value = state.permissionText
 		platformText.value = state.platformText
 		count.value = state.messages.length
+		etcCount.value = state.etcRecords.length
 	}
 </script>
 

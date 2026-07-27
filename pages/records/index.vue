@@ -6,13 +6,14 @@
 		</view>
 
 		<view class="logs">
-			<view v-if="!logs.length" class="empty">暂无短信</view>
-			<view v-for="item in logs" :key="item.id" class="log-item">
+			<view v-if="!records.length" class="empty">暂无 ETC 短信</view>
+			<view v-for="item in records" :key="item.id" class="log-item">
 				<view class="log-head">
-					<text class="sender">{{ item.sender || '未知号码' }}</text>
-					<text class="time">{{ item.time }}</text>
+					<text class="sender">{{ item.plateNo }}</text>
+					<text class="time">{{ item.amountText }}元</text>
 				</view>
-				<text class="body">{{ item.body }}</text>
+				<text class="body">{{ item.passDateText }} {{ item.entryStation }} -> {{ item.exitStation }}</text>
+				<text class="raw">{{ item.rawText }}</text>
 			</view>
 		</view>
 	</view>
@@ -24,11 +25,11 @@
 	import { getListeningContent } from '@/utils/smsListener.js'
 
 	const listening = ref(false)
-	const logs = ref([])
+	const records = ref([])
 
 	onLoad(() => {
 		syncState()
-		uni.$on('sms:received', syncState)
+		uni.$on('etc-sms:received', syncState)
 	})
 
 	onShow(() => {
@@ -36,13 +37,13 @@
 	})
 
 	onUnload(() => {
-		uni.$off('sms:received', syncState)
+		uni.$off('etc-sms:received', syncState)
 	})
 
 	function syncState() {
 		const state = getListeningContent()
 		listening.value = state.listening
-		logs.value = state.messages
+		records.value = state.etcRecords
 	}
 </script>
 
@@ -127,6 +128,15 @@
 	.body {
 		color: #374151;
 		font-size: 28rpx;
+		line-height: 1.5;
+		word-break: break-all;
+	}
+
+	.raw {
+		display: block;
+		margin-top: 12rpx;
+		color: #6b7280;
+		font-size: 24rpx;
 		line-height: 1.5;
 		word-break: break-all;
 	}
