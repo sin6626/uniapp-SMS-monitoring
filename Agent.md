@@ -17,6 +17,7 @@
 - 当前还有三个普通测试页面：`pages/probe-a/index`、`pages/probe-b/index`、`pages/probe-c/index`，用于验证离开 tabBar 页面后的监听状态。
 - 当前只处理包含 `ETC` 的短信；不含 `ETC` 的短信不入内存、不写缓存、不触发页面事件。包含 `ETC` 但不符合消费模板的短信也会保存原文。
 - ETC 短信解析和缓存逻辑在 `utils/etcSmsStore.js`，使用 uni 本地存储的索引加单条详情结构，最多保留 500 条。
+- `getListeningContent('2025年11月30日')` 会按短信收到时间 `receivedAt` 返回当天 00:00:00 及之后的 ETC 缓存记录，方便同步给后端。
 - ETC 解析检查脚本：`scripts/check-etc-sms-parser.ps1`。
 
 ## 项目规则

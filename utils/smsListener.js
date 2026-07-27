@@ -62,9 +62,9 @@ export function stopListening() {
 	return getListeningContent()
 }
 
-export function getListeningContent() {
+export function getListeningContent(receivedDateFrom) {
 	refreshPlatformText()
-	const etcRecords = getEtcSmsRecords()
+	const etcRecords = getEtcSmsRecords(receivedDateFrom)
 	return {
 		listening: registered,
 		permissionText,

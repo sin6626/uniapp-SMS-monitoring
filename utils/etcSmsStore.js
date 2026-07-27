@@ -64,10 +64,12 @@ export function saveEtcSms(rawSms) {
 	return record
 }
 
-export function getEtcSmsRecords() {
+export function getEtcSmsRecords(receivedDateFrom) {
+	const sinceTime = parseReceivedDateFrom(receivedDateFrom)
 	return getEtcSmsIndex()
 		.map((item) => uni.getStorageSync(`${ETC_RECORD_KEY_PREFIX}${item.id}`))
 		.filter(Boolean)
+		.filter((item) => sinceTime === null || item.receivedAt >= sinceTime)
 }
 
 function getEtcSmsIndex() {
@@ -105,4 +107,22 @@ function hashText(text) {
 		hash >>>= 0
 	}
 	return hash.toString(36)
+}
+
+function parseReceivedDateFrom(value) {
+	if (!value) return null
+	if (typeof value === 'number') return startOfDay(value)
+	if (value instanceof Date) return startOfDay(value.getTime())
+
+	const matched = String(value).match(/^(\d{4})年(\d{1,2})月(\d{1,2})日$/)
+	if (!matched) return null
+
+	const [, year, month, day] = matched
+	return new Date(Number(year), Number(month) - 1, Number(day)).getTime()
+}
+
+function startOfDay(timestamp) {
+	const date = new Date(timestamp)
+	date.setHours(0, 0, 0, 0)
+	return date.getTime()
 }

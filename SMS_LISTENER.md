@@ -71,4 +71,13 @@ ETC 短信逻辑在 `utils/etcSmsStore.js`。
 
 单条完整记录包含车牌、通行日期、入口站、出口站、金额、短信发送方、接收时间和原文 `rawText`。这种方式避免把大量短信原文全塞进一个大数组里。
 
+给后端同步某个日期之后的数据时，按短信收到时间 `receivedAt` 筛选：
+
+```js
+const state = getListeningContent('2025年11月30日')
+const data = state.etcRecords
+```
+
+这里的 `2025年11月30日` 会按当天 `00:00:00` 及之后计算；如果短信原文里没有通行日期，也不影响筛选。
+
 解析逻辑可运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/check-etc-sms-parser.ps1` 做快速检查。
