@@ -32,146 +32,47 @@
 
 <script setup>
 	import { ref } from 'vue'
-	import { onLoad, onUnload } from '@dcloudio/uni-app'
-
-	const SMS_PERMISSION = 'android.permission.RECEIVE_SMS'
-	const SMS_RECEIVED_ACTION = 'android.provider.Telephony.SMS_RECEIVED'
+	import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
+	import {
+		getListeningContent,
+		startListening as startSmsListening,
+		stopListening as stopSmsListening
+	} from '@/utils/smsListener.js'
 
 	const listening = ref(false)
 	const logs = ref([])
 	const permissionText = ref('未申请')
 	const platformText = ref('非 Android App')
 
-	let mainActivity = null
-	let smsReceiver = null
-	let smsFilter = null
-	let registered = false
-
 	onLoad(() => {
-		// #ifdef APP-PLUS
-		platformText.value = uni.getSystemInfoSync().platform === 'android' ? 'Android App' : '非 Android'
-		// #endif
+		syncState()
+		uni.$on('sms:received', syncState)
+	})
+
+	onShow(() => {
+		syncState()
 	})
 
 	onUnload(() => {
-		stopListening()
+		uni.$off('sms:received', syncState)
 	})
 
-	function startListening() {
-		// #ifndef APP-PLUS
-		uni.showToast({ title: '请运行到 Android App', icon: 'none' })
-		return
-		// #endif
-
-		// #ifdef APP-PLUS
-		if (uni.getSystemInfoSync().platform !== 'android') {
-			uni.showToast({ title: '仅支持 Android', icon: 'none' })
-			return
-		}
-
-		runWithPlus(async () => {
-			if (registered) {
-				listening.value = true
-				return
-			}
-
-			const granted = await requestSmsPermission()
-			if (!granted) return
-
-			const IntentFilter = plus.android.importClass('android.content.IntentFilter')
-			mainActivity = plus.android.runtimeMainActivity()
-			smsFilter = new IntentFilter()
-			smsFilter.addAction(SMS_RECEIVED_ACTION)
-			smsReceiver = plus.android.implements('io.dcloud.feature.internal.reflect.BroadcastReceiver', {
-				onReceive: (context, intent) => {
-					handleSmsIntent(intent)
-				}
-			})
-
-			mainActivity.registerReceiver(smsReceiver, smsFilter)
-			registered = true
-			listening.value = true
-			uni.showToast({ title: '已开始监听', icon: 'none' })
-		})
-		// #endif
+	async function startListening() {
+		await startSmsListening()
+		syncState()
 	}
 
 	function stopListening() {
-		// #ifdef APP-PLUS
-		if (registered && mainActivity && smsReceiver) {
-			mainActivity.unregisterReceiver(smsReceiver)
-		}
-		registered = false
-		smsReceiver = null
-		smsFilter = null
-		mainActivity = null
-		// #endif
-
-		listening.value = false
+		stopSmsListening()
+		syncState()
 	}
 
-	function runWithPlus(callback) {
-		if (typeof plus !== 'undefined' && plus.android) {
-			callback()
-			return
-		}
-
-		document.addEventListener('plusready', callback, { once: true })
-	}
-
-	function requestSmsPermission() {
-		return new Promise((resolve) => {
-			plus.android.requestPermissions(
-				[SMS_PERMISSION],
-				(result) => {
-					const denied = [...(result.deniedAlways || []), ...(result.deniedPresent || [])]
-					permissionText.value = denied.length ? '已拒绝' : '已授权'
-					if (denied.length) {
-						uni.showModal({
-							title: '需要短信权限',
-							content: '请授权接收短信权限后再监听。',
-							showCancel: false
-						})
-					}
-					resolve(!denied.length)
-				},
-				() => {
-					permissionText.value = '申请失败'
-					resolve(false)
-				}
-			)
-		})
-	}
-
-	function handleSmsIntent(intent) {
-		plus.android.importClass(intent)
-		if (intent.getAction() !== SMS_RECEIVED_ACTION) return
-
-		const SmsIntents = plus.android.importClass('android.provider.Telephony$Sms$Intents')
-		const messages = SmsIntents.getMessagesFromIntent(intent) || []
-		for (let index = 0; index < messages.length; index += 1) {
-			const message = messages[index]
-			plus.android.importClass(message)
-			handleSmsReceived({
-				id: `${Date.now()}-${index}`,
-				sender: message.getDisplayOriginatingAddress(),
-				body: message.getDisplayMessageBody(),
-				time: formatTime(message.getTimestampMillis())
-			})
-		}
-	}
-
-	function handleSmsReceived(sms) {
-		logs.value.unshift(sms)
-		logs.value = logs.value.slice(0, 20)
-		uni.$emit('sms:received', sms)
-		uni.showToast({ title: '收到短信', icon: 'none' })
-	}
-
-	function formatTime(timestamp) {
-		const date = timestamp ? new Date(Number(timestamp)) : new Date()
-		const pad = (value) => String(value).padStart(2, '0')
-		return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+	function syncState() {
+		const state = getListeningContent()
+		listening.value = state.listening
+		logs.value = state.messages
+		permissionText.value = state.permissionText
+		platformText.value = state.platformText
 	}
 </script>
 
