@@ -30,9 +30,10 @@
 6. 给 `IntentFilter` 添加 `android.provider.Telephony.SMS_RECEIVED` action。
 7. 使用 `plus.android.implements` 创建 `BroadcastReceiver`。
 8. 收到短信广播后，通过 `android.provider.Telephony$Sms$Intents.getMessagesFromIntent(intent)` 解析短信。
-9. 只处理匹配成功的 ETC 消费短信；非 ETC 短信直接忽略，不入内存、不写缓存、不触发事件。
-10. 将 ETC 原文和结构化字段写入本地缓存，并触发 `uni.$emit('sms:received', sms)` 与 `uni.$emit('etc-sms:received', record)`。
-11. Demo 页面监听事件后调用 `getListeningContent()` 刷新展示。
+9. 只处理包含 `ETC` 的短信；不包含 `ETC` 的短信直接忽略，不入内存、不写缓存、不触发事件。
+10. 包含 `ETC` 的短信一定保存原文；能匹配消费模板时额外写入车牌、日期、入口、出口、金额等结构化字段。
+11. 保存后触发 `uni.$emit('sms:received', sms)` 与 `uni.$emit('etc-sms:received', record)`。
+12. Demo 页面监听事件后调用 `getListeningContent()` 刷新展示。
 
 切换到底部 tabBar 的“记录”或“状态”页面后，页面同样读取 `getListeningContent()`，用于验证离开监听页后是否还能收到短信。
 
@@ -50,8 +51,9 @@
 
 当前收到短信后的处理规则：
 
-- 非 ETC 短信直接忽略。
-- 匹配 ETC 消费短信后，解析关键信息并写入本地缓存。
+- 不包含 `ETC` 的短信直接忽略。
+- 包含 `ETC` 的短信一定写入本地缓存，原文保存在 `rawText`。
+- 匹配 ETC 消费模板时，解析关键信息并一起保存。
 - 同时触发 `uni.$emit('sms:received', sms)` 和 `uni.$emit('etc-sms:received', record)`。
 
 后续如果要做转发接口、关键词匹配、自动弹窗或本地存储，优先接 `sms:received` 事件，或者定时调用 `getListeningContent()` 读取短信列表。
@@ -60,7 +62,7 @@
 
 ETC 短信逻辑在 `utils/etcSmsStore.js`。
 
-当前只匹配类似“车辆（****9R0）于2025年11月30日在湖南灌溪站驶入，至湖南长沙西站驶出，共计消费71.85元”的短信。
+当前所有包含 `ETC` 的短信都会保存。类似“车辆（****9R0）于2025年11月30日在湖南灌溪站驶入，至湖南长沙西站驶出，共计消费71.85元”的短信会额外解析结构化字段。
 
 缓存使用 uni-app 本地存储，不使用 Pinia：
 

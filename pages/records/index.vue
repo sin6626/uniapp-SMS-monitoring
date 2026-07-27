@@ -12,7 +12,7 @@
 					<text class="sender">{{ item.plateNo }}</text>
 					<text class="time">{{ item.amountText }}元</text>
 				</view>
-				<text class="body">{{ item.passDateText }} {{ item.entryStation }} -> {{ item.exitStation }}</text>
+				<text class="body">{{ getSummary(item) }}</text>
 				<text class="raw">{{ item.rawText }}</text>
 			</view>
 		</view>
@@ -44,6 +44,12 @@
 		const state = getListeningContent()
 		listening.value = state.listening
 		records.value = state.etcRecords
+	}
+
+	function getSummary(item) {
+		if (!item.parsed) return '未识别为消费模板，已保存原文'
+
+		return `${item.passDateText} ${item.entryStation} -> ${item.exitStation}`
 	}
 </script>
 

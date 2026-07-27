@@ -23,6 +23,7 @@ assert(parsed.entryStation === '\u6e56\u5357\u704c\u6eaa\u7ad9', 'entryStation')
 assert(parsed.exitStation === '\u6e56\u5357\u957f\u6c99\u897f\u7ad9', 'exitStation')
 assert(parsed.amount === 71.85, 'amount')
 assert(parsed.sender === '\u5de5\u5546\u94f6\u884c', 'sender')
+assert(parsed.parsed === true, 'parsed true')
 
 saveEtcSms({ sender: '95588', body: raw, time: '10:00:00' })
 const records = getEtcSmsRecords()
@@ -31,6 +32,10 @@ assert(records[0].rawText === raw, 'rawText')
 assert(parseEtcSms('code123456') === null, 'ignore non-etc')
 assert(saveEtcSms({ sender: '10086', body: 'code123456', time: '10:01:00' }) === null, 'skip non-etc save')
 assert(getEtcSmsRecords().length === 1, 'non-etc not stored')
+const rawEtc = saveEtcSms({ sender: '95588', body: 'ETC\u7b7e\u7ea6\u6210\u529f', time: '10:02:00' })
+assert(rawEtc.parsed === false, 'raw etc saved')
+assert(rawEtc.rawText === 'ETC\u7b7e\u7ea6\u6210\u529f', 'raw etc text')
+assert(getEtcSmsRecords().length === 2, 'raw etc stored')
 console.log('ETC parser check passed')
 '@
 

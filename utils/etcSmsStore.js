@@ -4,16 +4,17 @@ const MAX_RECORDS = 500
 
 export function parseEtcSms(rawText) {
 	const text = String(rawText || '').replace(/\s+/g, '')
-	if (!text.includes('ETC') || !text.includes('车辆') || !text.includes('驶入') || !text.includes('驶出')) {
+	if (!text.includes('ETC')) {
 		return null
 	}
 
 	const matched = text.match(/车辆（(.+?)）于(\d{4}年\d{1,2}月\d{1,2}日)在(.+?)驶入，至(.+?)驶出，共计消费([\d.]+)元/)
-	if (!matched) return null
+	if (!matched) return createRawEtcRecord(rawText)
 
 	const [, plateNo, passDateText, entryStation, exitStation, amountText] = matched
 	const bankMatched = text.match(/【(.+?)】$/)
 	return {
+		parsed: true,
 		plateNo,
 		passDateText,
 		entryStation,
@@ -21,6 +22,20 @@ export function parseEtcSms(rawText) {
 		amount: Number(amountText),
 		amountText,
 		sender: bankMatched ? bankMatched[1] : '',
+		rawText
+	}
+}
+
+function createRawEtcRecord(rawText) {
+	return {
+		parsed: false,
+		plateNo: '',
+		passDateText: '',
+		entryStation: '',
+		exitStation: '',
+		amount: null,
+		amountText: '',
+		sender: '',
 		rawText
 	}
 }
