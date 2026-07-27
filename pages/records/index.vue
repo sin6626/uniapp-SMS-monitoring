@@ -24,8 +24,8 @@
 			<view v-if="!records.length" class="empty">暂无 ETC 短信</view>
 			<view v-for="item in records" :key="item.id" class="log-item">
 				<view class="log-head">
-					<text class="sender">{{ item.plateNo }}</text>
-					<text class="time">{{ item.amountText }}元</text>
+					<text class="sender">{{ item.smsSender || '未知号码' }}</text>
+					<text class="time">{{ formatRecordTime(item.receivedAt) }}</text>
 				</view>
 				<text class="body">{{ getSummary(item) }}</text>
 				<text class="raw">{{ item.rawText }}</text>
@@ -75,9 +75,13 @@
 	}
 
 	function getSummary(item) {
-		if (!item.parsed) return '未识别为消费模板，已保存原文'
+		return `收到时间：${formatRecordTime(item.receivedAt)}，已保存原文`
+	}
 
-		return `${item.passDateText} ${item.entryStation} -> ${item.exitStation}`
+	function formatRecordTime(timestamp) {
+		const date = new Date(timestamp)
+		const pad = (value) => String(value).padStart(2, '0')
+		return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 	}
 </script>
 

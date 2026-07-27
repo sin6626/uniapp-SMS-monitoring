@@ -1,41 +1,11 @@
-const ETC_INDEX_KEY = 'etc_sms_record_index'
-const ETC_RECORD_KEY_PREFIX = 'etc_sms_record:'
-const MAX_RECORDS = 500
+const ETC_DATE_INDEX_KEY = 'etc_sms_record_dates'
+const ETC_DAY_KEY_PREFIX = 'etc_sms_records:'
 
 export function parseEtcSms(rawText) {
-	const text = String(rawText || '').replace(/\s+/g, '')
-	if (!text.includes('ETC')) {
-		return null
-	}
+	const text = String(rawText || '')
+	if (!text.toUpperCase().includes('ETC')) return null
 
-	const matched = text.match(/车辆（(.+?)）于(\d{4}年\d{1,2}月\d{1,2}日)在(.+?)驶入，至(.+?)驶出，共计消费([\d.]+)元/)
-	if (!matched) return createRawEtcRecord(rawText)
-
-	const [, plateNo, passDateText, entryStation, exitStation, amountText] = matched
-	const bankMatched = text.match(/【(.+?)】$/)
 	return {
-		parsed: true,
-		plateNo,
-		passDateText,
-		entryStation,
-		exitStation,
-		amount: Number(amountText),
-		amountText,
-		sender: bankMatched ? bankMatched[1] : '',
-		rawText
-	}
-}
-
-function createRawEtcRecord(rawText) {
-	return {
-		parsed: false,
-		plateNo: '',
-		passDateText: '',
-		entryStation: '',
-		exitStation: '',
-		amount: null,
-		amountText: '',
-		sender: '',
 		rawText
 	}
 }
@@ -44,60 +14,61 @@ export function saveEtcSms(rawSms) {
 	const parsed = parseEtcSms(rawSms.body)
 	if (!parsed) return null
 
+	const receivedAt = Number(rawSms.receivedAt) || Date.now()
 	const record = {
-		id: createRecordId(rawSms, parsed),
-		receivedAt: Date.now(),
+		id: createRecordId(rawSms),
+		receivedAt,
 		smsSender: rawSms.sender || '',
-		smsTime: rawSms.time || '',
-		...parsed
+		rawText: parsed.rawText
 	}
-	const oldIndex = getEtcSmsIndex()
-	if (oldIndex.some((item) => item.id === record.id)) return record
+	const dateKey = formatDateKey(receivedAt)
+	const dayKey = `${ETC_DAY_KEY_PREFIX}${dateKey}`
+	const records = getDayRecords(dateKey)
+	if (records.some((item) => item.id === record.id)) return record
 
-	uni.setStorageSync(`${ETC_RECORD_KEY_PREFIX}${record.id}`, record)
-	const nextIndex = [
-		toIndexItem(record),
-		...oldIndex
-	].slice(0, MAX_RECORDS)
-	trimOldRecords(oldIndex, nextIndex)
-	uni.setStorageSync(ETC_INDEX_KEY, nextIndex)
+	uni.setStorageSync(dayKey, [record, ...records])
+	saveDateKey(dateKey)
 	return record
 }
 
 export function getEtcSmsRecords(receivedDateFrom) {
-	const sinceTime = parseReceivedDateFrom(receivedDateFrom)
-	return getEtcSmsIndex()
-		.map((item) => uni.getStorageSync(`${ETC_RECORD_KEY_PREFIX}${item.id}`))
-		.filter(Boolean)
-		.filter((item) => sinceTime === null || item.receivedAt >= sinceTime)
+	const fromDateKey = normalizeDateKey(receivedDateFrom)
+	return getDateKeys()
+		.filter((dateKey) => !fromDateKey || dateKey >= fromDateKey)
+		.flatMap((dateKey) => getDayRecords(dateKey))
+		.sort((left, right) => right.receivedAt - left.receivedAt)
 }
 
-function getEtcSmsIndex() {
-	const value = uni.getStorageSync(ETC_INDEX_KEY)
+export function normalizeDateKey(value) {
+	if (!value) return ''
+	if (typeof value === 'number') return formatDateKey(value)
+	if (value instanceof Date) return formatDateKey(value.getTime())
+
+	const text = String(value).trim()
+	const matched = text.match(/^(\d{4})(?:年|-)(\d{1,2})(?:月|-)(\d{1,2})(?:日)?$/)
+	if (!matched) return ''
+
+	const [, year, month, day] = matched
+	return `${year}-${pad(month)}-${pad(day)}`
+}
+
+function getDayRecords(dateKey) {
+	const value = uni.getStorageSync(`${ETC_DAY_KEY_PREFIX}${dateKey}`)
 	return Array.isArray(value) ? value : []
 }
 
-function toIndexItem(record) {
-	return {
-		id: record.id,
-		receivedAt: record.receivedAt,
-		plateNo: record.plateNo,
-		passDateText: record.passDateText,
-		entryStation: record.entryStation,
-		exitStation: record.exitStation,
-		amount: record.amount
-	}
+function getDateKeys() {
+	const value = uni.getStorageSync(ETC_DATE_INDEX_KEY)
+	return Array.isArray(value) ? value : []
 }
 
-function trimOldRecords(oldIndex, nextIndex) {
-	const keptIds = new Set(nextIndex.map((item) => item.id))
-	oldIndex
-		.filter((item) => !keptIds.has(item.id))
-		.forEach((item) => uni.removeStorageSync(`${ETC_RECORD_KEY_PREFIX}${item.id}`))
+function saveDateKey(dateKey) {
+	const nextDates = Array.from(new Set([dateKey, ...getDateKeys()])).sort().reverse()
+	uni.setStorageSync(ETC_DATE_INDEX_KEY, nextDates)
 }
 
-function createRecordId(rawSms, parsed) {
-	return `etc_${hashText([rawSms.sender || '', rawSms.body || '', parsed.amountText].join('|'))}`
+function createRecordId(rawSms) {
+	return `etc_${hashText([rawSms.sender || '', rawSms.body || ''].join('|'))}`
 }
 
 function hashText(text) {
@@ -109,20 +80,11 @@ function hashText(text) {
 	return hash.toString(36)
 }
 
-function parseReceivedDateFrom(value) {
-	if (!value) return null
-	if (typeof value === 'number') return startOfDay(value)
-	if (value instanceof Date) return startOfDay(value.getTime())
-
-	const matched = String(value).match(/^(\d{4})年(\d{1,2})月(\d{1,2})日$/)
-	if (!matched) return null
-
-	const [, year, month, day] = matched
-	return new Date(Number(year), Number(month) - 1, Number(day)).getTime()
+function formatDateKey(timestamp) {
+	const date = new Date(timestamp)
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-function startOfDay(timestamp) {
-	const date = new Date(timestamp)
-	date.setHours(0, 0, 0, 0)
-	return date.getTime()
+function pad(value) {
+	return String(value).padStart(2, '0')
 }

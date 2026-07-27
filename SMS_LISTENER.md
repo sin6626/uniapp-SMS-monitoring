@@ -64,12 +64,12 @@ ETC 短信逻辑在 `utils/etcSmsStore.js`。
 
 当前所有包含 `ETC` 的短信都会保存。类似“车辆（****9R0）于2025年11月30日在湖南灌溪站驶入，至湖南长沙西站驶出，共计消费71.85元”的短信会额外解析结构化字段。
 
-缓存使用 uni-app 本地存储，不使用 Pinia：
+缓存使用 uni-app 本地存储，不使用 Pinia。当前缓存按收到短信日期分桶：
 
-- `etc_sms_record_index` 保存最多 500 条轻量索引。
-- `etc_sms_record:<id>` 保存单条完整记录。
+- `etc_sms_record_dates` 保存日期索引，如 `['2025-12-01', '2025-11-30']`。
+- `etc_sms_records:2025-11-30` 保存当天收到的 ETC 短信数组。
 
-单条完整记录包含车牌、通行日期、入口站、出口站、金额、短信发送方、接收时间和原文 `rawText`。这种方式避免把大量短信原文全塞进一个大数组里。
+单条记录包含 `id`、`receivedAt`、`smsSender`、`rawText`。后端可以直接解析 `rawText`。
 
 给后端同步某个日期之后的数据时，按短信收到时间 `receivedAt` 筛选：
 
@@ -80,6 +80,8 @@ const data = state.etcRecords
 
 这里的 `2025年11月30日` 会按当天 `00:00:00` 及之后计算；如果短信原文里没有通行日期，也不影响筛选。
 
-“记录”tab 顶部提供了日期输入框，可直接输入 `2025年11月30日` 测试这个筛选逻辑。
+“记录”tab 顶部提供了日期输入框，可直接输入 `2025年11月30日` 或 `2025-11-30` 测试这个筛选逻辑。
+
+更详细的工具使用说明见根目录 `ETC_SMS_UTILS_USAGE.md`。
 
 解析逻辑可运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/check-etc-sms-parser.ps1` 做快速检查。

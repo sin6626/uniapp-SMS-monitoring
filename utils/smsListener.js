@@ -125,7 +125,8 @@ function handleSmsIntent(intent) {
 			id: `${Date.now()}-${index}`,
 			sender: message.getDisplayOriginatingAddress(),
 			body: message.getDisplayMessageBody(),
-			time: formatTime(message.getTimestampMillis())
+			time: formatTime(message.getTimestampMillis()),
+			receivedAt: Number(message.getTimestampMillis()) || Date.now()
 		})
 	}
 }
@@ -148,9 +149,9 @@ function formatTime(timestamp) {
 function toSmsMessage(record) {
 	return {
 		id: record.id,
-		sender: record.smsSender || record.sender || '',
+		sender: record.smsSender || '',
 		body: record.rawText,
-		time: record.smsTime || formatTime(record.receivedAt),
+		time: formatTime(record.receivedAt),
 		etcRecord: record
 	}
 }
