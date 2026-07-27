@@ -2,8 +2,8 @@
 	<view class="content">
 		<text class="title">普通页面 A</text>
 		<text :class="['badge', listening ? 'badge-on' : '']">{{ listening ? '监听中' : '未监听' }}</text>
-		<text class="meta">短信条数：{{ count }}</text>
-		<text class="body">最新短信：{{ latest }}</text>
+		<text class="meta">ETC短信条数：{{ count }}</text>
+		<text class="body">最新ETC短信：{{ latest }}</text>
 		<button class="primary" @click="goNext">进入普通页面 B</button>
 		<button class="secondary" @click="goRecords">回记录 tab</button>
 	</view>

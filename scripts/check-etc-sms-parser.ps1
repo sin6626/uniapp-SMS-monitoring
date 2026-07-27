@@ -29,6 +29,8 @@ const records = getEtcSmsRecords()
 assert(records.length === 1, 'records length')
 assert(records[0].rawText === raw, 'rawText')
 assert(parseEtcSms('code123456') === null, 'ignore non-etc')
+assert(saveEtcSms({ sender: '10086', body: 'code123456', time: '10:01:00' }) === null, 'skip non-etc save')
+assert(getEtcSmsRecords().length === 1, 'non-etc not stored')
 console.log('ETC parser check passed')
 '@
 

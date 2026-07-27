@@ -8,8 +8,8 @@
 		<view class="meta">
 			<text>权限：{{ permissionText }}</text>
 			<text>平台：{{ platformText }}</text>
-			<text>短信条数：{{ count }}</text>
-			<text>ETC记录：{{ etcCount }}</text>
+			<text>ETC短信条数：{{ count }}</text>
+			<text>ETC缓存记录：{{ etcCount }}</text>
 		</view>
 
 		<view class="actions">

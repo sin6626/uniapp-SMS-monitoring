@@ -9,7 +9,6 @@ let smsFilter = null
 let registered = false
 let permissionText = '未申请'
 let platformText = '非 Android App'
-let smsMessages = []
 
 export function startListening() {
 	// #ifndef APP-PLUS
@@ -65,12 +64,13 @@ export function stopListening() {
 
 export function getListeningContent() {
 	refreshPlatformText()
+	const etcRecords = getEtcSmsRecords()
 	return {
 		listening: registered,
 		permissionText,
 		platformText,
-		messages: smsMessages.slice(),
-		etcRecords: getEtcSmsRecords()
+		messages: etcRecords.map(toSmsMessage),
+		etcRecords
 	}
 }
 
@@ -131,16 +131,26 @@ function handleSmsIntent(intent) {
 }
 
 function handleSmsReceived(sms) {
-	smsMessages.unshift(sms)
-	smsMessages = smsMessages.slice(0, 20)
 	const etcRecord = saveEtcSms(sms)
-	uni.$emit('sms:received', sms)
-	if (etcRecord) uni.$emit('etc-sms:received', etcRecord)
-	uni.showToast({ title: '收到短信', icon: 'none' })
+	if (!etcRecord) return
+
+	uni.$emit('sms:received', toSmsMessage(etcRecord))
+	uni.$emit('etc-sms:received', etcRecord)
+	uni.showToast({ title: '收到ETC短信', icon: 'none' })
 }
 
 function formatTime(timestamp) {
 	const date = timestamp ? new Date(Number(timestamp)) : new Date()
 	const pad = (value) => String(value).padStart(2, '0')
 	return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
+function toSmsMessage(record) {
+	return {
+		id: record.id,
+		sender: record.smsSender || record.sender || '',
+		body: record.rawText,
+		time: record.smsTime || formatTime(record.receivedAt),
+		etcRecord: record
+	}
 }

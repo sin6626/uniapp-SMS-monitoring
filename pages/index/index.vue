@@ -2,7 +2,7 @@
 	<view class="content">
 		<view class="panel">
 			<view class="header">
-				<text class="title">短信监听</text>
+				<text class="title">ETC短信监听</text>
 				<text :class="['badge', listening ? 'badge-on' : '']">{{ listening ? '监听中' : '未监听' }}</text>
 			</view>
 
@@ -17,7 +17,7 @@
 			</view>
 
 			<view class="logs">
-				<view v-if="!logs.length" class="empty">暂无短信</view>
+				<view v-if="!logs.length" class="empty">暂无 ETC 短信</view>
 				<view v-for="item in logs" :key="item.id" class="log-item">
 					<view class="log-head">
 						<text class="sender">{{ item.sender || '未知号码' }}</text>
