@@ -1,7 +1,7 @@
 const SMS_PERMISSION = 'android.permission.RECEIVE_SMS'
 const SMS_RECEIVED_ACTION = 'android.provider.Telephony.SMS_RECEIVED'
 
-let receiverContext = null
+let mainActivity = null
 let smsReceiver = null
 let smsFilter = null
 let registered = false
@@ -29,10 +29,7 @@ export function startListening() {
 		if (!granted) return { ok: false, reason: 'permission-denied' }
 
 		const IntentFilter = plus.android.importClass('android.content.IntentFilter')
-		const activity = plus.android.runtimeMainActivity()
-		plus.android.importClass(activity)
-		receiverContext = activity.getApplicationContext()
-		plus.android.importClass(receiverContext)
+		mainActivity = plus.android.runtimeMainActivity()
 
 		smsFilter = new IntentFilter()
 		smsFilter.addAction(SMS_RECEIVED_ACTION)
@@ -42,7 +39,7 @@ export function startListening() {
 			}
 		})
 
-		receiverContext.registerReceiver(smsReceiver, smsFilter)
+		mainActivity.registerReceiver(smsReceiver, smsFilter)
 		registered = true
 		uni.showToast({ title: '已开始监听', icon: 'none' })
 		return { ok: true }
@@ -52,13 +49,13 @@ export function startListening() {
 
 export function stopListening() {
 	// #ifdef APP-PLUS
-	if (registered && receiverContext && smsReceiver) {
-		receiverContext.unregisterReceiver(smsReceiver)
+	if (registered && mainActivity && smsReceiver) {
+		mainActivity.unregisterReceiver(smsReceiver)
 	}
 	// #endif
 
 	registered = false
-	receiverContext = null
+	mainActivity = null
 	smsReceiver = null
 	smsFilter = null
 	return getListeningContent()

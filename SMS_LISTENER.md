@@ -33,7 +33,7 @@
 
 ## 后台监听说明
 
-当前实现使用 `ApplicationContext` 注册动态广播，不把监听器绑死在页面实例上。
+当前实现使用 `plus.android.runtimeMainActivity()` 注册动态广播，但不把监听生命周期绑死在 Demo 页面上。
 
 因此，只要 App 进程仍然存活，即使 App 切到后台，也可以继续收到短信广播。Demo 页面卸载时只移除页面事件监听，不会自动停止短信监听；只有点击“停止监听”或调用 `stopListening()` 才会注销广播。
 
