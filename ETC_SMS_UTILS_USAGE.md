@@ -12,16 +12,52 @@ import {
 } from '@/utils/smsListener.js'
 ```
 
-- `startListening()`：申请短信权限并开始监听 Android 短信广播。
+- `startListening(options)`：申请短信权限并开始监听 Android 短信广播。
 - `stopListening()`：停止监听。
 - `getListeningContent(date)`：读取本地缓存的 ETC 短信记录，可按收到短信日期筛选。
 
 ## 监听规则
 
-App 端仍然会收到系统短信广播，但工具层只处理短信正文里包含 `ETC` 的短信。
+App 端仍然会收到系统短信广播，但工具层默认只处理官方 ETC 短信：
 
-- 包含 `ETC`：写入本地缓存，并触发 `sms:received` / `etc-sms:received`。
-- 不包含 `ETC`：直接忽略，不写缓存，不触发事件。
+- 发送方必须是 `106` 开头。
+- 正文必须包含 `ETC`。
+- 普通 11 位手机号发来的 ETC 短信会被忽略。
+
+默认调用即可：
+
+```js
+await startListening()
+```
+
+等价于：
+
+```js
+await startListening({
+	senderPrefix: '106',
+	keywords: ['ETC']
+})
+```
+
+如果后续要复用成别的短信规则，可以传自己的前缀和关键词：
+
+```js
+await startListening({
+	senderPrefix: '955',
+	keywords: ['ETC']
+})
+```
+
+也支持多个前缀：
+
+```js
+await startListening({
+	senderPrefixes: ['106', '955'],
+	keywords: ['ETC']
+})
+```
+
+传多个关键词时，短信正文需要同时包含这些关键词才会缓存。
 
 ## 本地缓存 key
 
@@ -57,7 +93,7 @@ etc_sms_records:2025-12-01
 	{
 		id: 'etc_xxx',
 		receivedAt: 1764460800000,
-		smsSender: '95588',
+		smsSender: '10690000',
 		rawText: '尊敬的ETC客户：您好！...'
 	}
 ]
@@ -138,4 +174,4 @@ const rawTexts = getListeningContent('2025-11-30').etcRecords.map((item) => item
 - 只支持 Android App 端，H5、小程序、iOS 不支持短信监听。
 - App 被系统杀进程后，纯 JS 动态广播不能保证继续监听。
 - 不要在页面 `onUnload` 里调用 `stopListening()`，否则切页面会停止监听。
-- 不包含 `ETC` 的短信不会进入缓存。
+- 非 `106` 开头或不包含 `ETC` 的短信不会进入缓存。

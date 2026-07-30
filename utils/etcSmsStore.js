@@ -1,17 +1,25 @@
 const ETC_DATE_INDEX_KEY = 'etc_sms_record_dates'
 const ETC_DAY_KEY_PREFIX = 'etc_sms_records:'
+const DEFAULT_FILTER = {
+	senderPrefix: '106',
+	keywords: ['ETC']
+}
 
-export function parseEtcSms(rawText) {
+export function parseEtcSms(rawText, keywords = DEFAULT_FILTER.keywords) {
 	const text = String(rawText || '')
-	if (!text.toUpperCase().includes('ETC')) return null
+	const normalizedKeywords = normalizeList(keywords)
+	if (!normalizedKeywords.every((keyword) => text.toUpperCase().includes(keyword.toUpperCase()))) return null
 
 	return {
 		rawText
 	}
 }
 
-export function saveEtcSms(rawSms) {
-	const parsed = parseEtcSms(rawSms.body)
+export function saveEtcSms(rawSms, filterOptions = DEFAULT_FILTER) {
+	const options = normalizeFilterOptions(filterOptions)
+	if (!shouldSaveSms(rawSms, options)) return null
+
+	const parsed = parseEtcSms(rawSms.body, options.keywords)
 	if (!parsed) return null
 
 	const receivedAt = Number(rawSms.receivedAt) || Date.now()
@@ -29,6 +37,15 @@ export function saveEtcSms(rawSms) {
 	uni.setStorageSync(dayKey, [record, ...records])
 	saveDateKey(dateKey)
 	return record
+}
+
+export function shouldSaveSms(rawSms, filterOptions = DEFAULT_FILTER) {
+	const options = normalizeFilterOptions(filterOptions)
+	const sender = normalizeSender(rawSms.sender)
+	const body = String(rawSms.body || '')
+
+	return options.senderPrefixes.some((prefix) => sender.startsWith(prefix)) &&
+		options.keywords.every((keyword) => body.toUpperCase().includes(keyword.toUpperCase()))
 }
 
 export function getEtcSmsRecords(receivedDateFrom) {
@@ -87,4 +104,25 @@ function formatDateKey(timestamp) {
 
 function pad(value) {
 	return String(value).padStart(2, '0')
+}
+
+function normalizeFilterOptions(filterOptions) {
+	const options = {
+		...DEFAULT_FILTER,
+		...(filterOptions || {})
+	}
+	return {
+		senderPrefixes: normalizeList(options.senderPrefixes || options.senderPrefix),
+		keywords: normalizeList(options.keywords || options.keyword)
+	}
+}
+
+function normalizeList(value) {
+	if (Array.isArray(value)) return value.map(String).filter(Boolean)
+	if (value) return [String(value)]
+	return []
+}
+
+function normalizeSender(sender) {
+	return String(sender || '').trim().replace(/^\+86/, '')
 }

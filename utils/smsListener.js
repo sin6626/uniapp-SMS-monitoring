@@ -2,6 +2,10 @@ import { getEtcSmsRecords, saveEtcSms } from './etcSmsStore.js'
 
 const SMS_PERMISSION = 'android.permission.RECEIVE_SMS'
 const SMS_RECEIVED_ACTION = 'android.provider.Telephony.SMS_RECEIVED'
+const DEFAULT_LISTENER_OPTIONS = {
+	senderPrefix: '106',
+	keywords: ['ETC']
+}
 
 let mainActivity = null
 let smsReceiver = null
@@ -9,8 +13,14 @@ let smsFilter = null
 let registered = false
 let permissionText = '未申请'
 let platformText = '非 Android App'
+let listenerOptions = DEFAULT_LISTENER_OPTIONS
 
-export function startListening() {
+export function startListening(options) {
+	listenerOptions = {
+		...DEFAULT_LISTENER_OPTIONS,
+		...(options || {})
+	}
+
 	// #ifndef APP-PLUS
 	uni.showToast({ title: '请运行到 Android App', icon: 'none' })
 	return Promise.resolve({ ok: false, reason: 'not-app-plus' })
@@ -132,7 +142,7 @@ function handleSmsIntent(intent) {
 }
 
 function handleSmsReceived(sms) {
-	const etcRecord = saveEtcSms(sms)
+	const etcRecord = saveEtcSms(sms, listenerOptions)
 	if (!etcRecord) return
 
 	uni.$emit('sms:received', toSmsMessage(etcRecord))
