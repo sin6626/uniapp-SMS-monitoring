@@ -45,9 +45,7 @@ export function startListening(options) {
 
 		smsFilter = new IntentFilter()
 		smsFilter.addAction(SMS_RECEIVED_ACTION)
-		if (isDevelopment()) {
-			smsFilter.addAction(MOCK_SMS_ACTION)
-		}
+		smsFilter.addAction(MOCK_SMS_ACTION)
 		smsReceiver = plus.android.implements('io.dcloud.feature.internal.reflect.BroadcastReceiver', {
 			onReceive: (context, intent) => {
 				handleSmsIntent(intent)
@@ -193,8 +191,4 @@ function toSmsMessage(record) {
 		time: formatTime(record.receivedAt),
 		etcRecord: record
 	}
-}
-
-function isDevelopment() {
-	return typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
 }

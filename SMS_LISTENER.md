@@ -40,7 +40,7 @@
 
 开发环境下，Demo 页面会显示模拟短信输入区。先点击“开始监听”，再自定义发送方和短信内容，点击“模拟收到短信”会调用 `simulateSmsReceived()`，后续仍走同一套发送方前缀、关键词、本地缓存和页面事件逻辑。
 
-雷电模拟器不支持标准 `adb emu sms send` 时，开发环境也可以先开启监听，再用 adb 发送测试广播：
+雷电模拟器不支持标准 `adb emu sms send` 时，也可以重新运行 App、先开启监听，再用 adb 发送测试广播。这条命令不是系统短信注入，只用于验证监听开关、发送方过滤、关键词过滤和缓存链路：
 
 ```powershell
 & 'D:\moniqi\leidian\LDPlayer9\adb.exe' -s 127.0.0.1:5555 shell am broadcast -a uniapp.smsmonitoring.MOCK_SMS -p io.dcloud.HBuilder --es sender 10690000 --es body "尊敬的ETC客户：您好！ETC测试短信"
