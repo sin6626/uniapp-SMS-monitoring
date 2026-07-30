@@ -20,6 +20,8 @@
 				<input
 					:value="mockSender"
 					class="mock-input"
+					type="text"
+					maxlength="-1"
 					placeholder="模拟发送方，例如 10690000"
 					@input="onMockSenderInput"
 				/>
@@ -29,7 +31,7 @@
 					placeholder="模拟短信内容，需包含 ETC"
 					@input="onMockBodyInput"
 				/>
-				<button class="secondary" :disabled="!listening" @click="sendMockSms">模拟收到短信</button>
+				<button class="secondary" @click="sendMockSms">模拟收到短信</button>
 			</view>
 
 			<view class="logs">
@@ -78,8 +80,11 @@
 	})
 
 	async function startListening() {
-		await startSmsListening()
+		const result = await startSmsListening()
 		syncState()
+		if (!result.ok) {
+			uni.showToast({ title: '监听未开启', icon: 'none' })
+		}
 	}
 
 	function stopListening() {
@@ -88,8 +93,9 @@
 	}
 
 	function sendMockSms() {
-		if (!listening.value) {
-			uni.showToast({ title: '请先开始监听', icon: 'none' })
+		if (!getListeningContent().listening) {
+			uni.showToast({ title: '未监听，模拟短信未接收', icon: 'none' })
+			syncState()
 			return
 		}
 
@@ -97,6 +103,7 @@
 			sender: mockSender.value,
 			body: mockBody.value
 		})
+
 		if (!record) {
 			uni.showToast({ title: '未命中过滤规则', icon: 'none' })
 		}
@@ -194,6 +201,11 @@
 		box-sizing: border-box;
 		color: #111827;
 		font-size: 28rpx;
+	}
+
+	.mock-input {
+		height: 84rpx;
+		line-height: 84rpx;
 	}
 
 	.mock-textarea {
