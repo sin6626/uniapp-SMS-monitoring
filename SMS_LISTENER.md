@@ -14,11 +14,13 @@
 
 ## 暴露方法
 
-`utils/smsListener.js` 只对外暴露三个方法：
+`utils/smsListener.js` 业务侧主要使用三个方法：
 
 - `startListening(options)`：申请短信权限，并开始注册短信广播监听。
 - `stopListening()`：注销短信广播监听。
 - `getListeningContent()`：获取当前监听状态、权限状态、平台信息和最近收到的短信列表。
+
+另有一个开发调试方法 `simulateSmsReceived()`，Demo 页面在开发环境用它模拟收到短信，方便不用真实 106 通道也能测试过滤和缓存。
 
 ## 实现流程
 
@@ -35,6 +37,8 @@
 11. 命中规则的 ETC 短信保存原文，不命中规则的短信直接忽略，不入内存、不写缓存、不触发事件。
 12. 保存后触发 `uni.$emit('sms:received', sms)` 与 `uni.$emit('etc-sms:received', record)`。
 13. Demo 页面监听事件后调用 `getListeningContent()` 刷新展示。
+
+开发环境下，Demo 页面会显示模拟短信输入区。点击“模拟收到短信”会调用 `simulateSmsReceived()`，后续仍走同一套发送方前缀、关键词、本地缓存和页面事件逻辑。
 
 切换到底部 tabBar 的“记录”或“状态”页面后，页面同样读取 `getListeningContent()`，用于验证离开监听页后是否还能收到短信。
 

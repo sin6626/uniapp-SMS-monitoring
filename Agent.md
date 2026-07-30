@@ -8,7 +8,7 @@
 
 - 仅在 `APP-PLUS` Android 环境运行短信监听逻辑。
 - 页面代码使用 Vue3 `<script setup>` 写法。
-- 短信监听逻辑封装在 `utils/smsListener.js`，对外只暴露 `startListening`、`stopListening`、`getListeningContent`。
+- 短信监听逻辑封装在 `utils/smsListener.js`，业务侧主要使用 `startListening`、`stopListening`、`getListeningContent`。
 - 使用 `plus.android.runtimeMainActivity()` 动态注册 `android.provider.Telephony.SMS_RECEIVED` 广播；页面卸载不自动停止监听，保证 App 进程存活时切后台仍可监听。
 - 通过 `android.provider.Telephony$Sms$Intents.getMessagesFromIntent(intent)` 解析短信。
 - 当前版本用于前台或进程存活时验证；如果要 App 被杀后仍监听，需要改为 Android 原生插件或静态 Receiver。
@@ -19,6 +19,7 @@
 - ETC 短信缓存逻辑在 `utils/etcSmsStore.js`，使用日期索引 `etc_sms_record_dates` 加日期分桶 `etc_sms_records:YYYY-MM-DD`，value 保存当天 ETC 原文记录数组。
 - `getListeningContent('2025年11月30日')` / `getListeningContent('2025-11-30')` 会按短信收到时间 `receivedAt` 返回当天及之后的 ETC 缓存记录，方便同步给后端。
 - `pages/records/index` 顶部有日期输入框，用于测试 `getListeningContent(date)` 的筛选结果。
+- `pages/index/index` 在开发环境显示模拟短信输入区，调用 `simulateSmsReceived()` 测试发送方、正文过滤和缓存展示。
 - 根目录 `ETC_SMS_UTILS_USAGE.md` 是给同事看的工具使用说明。
 - ETC 解析检查脚本：`scripts/check-etc-sms-parser.ps1`。
 

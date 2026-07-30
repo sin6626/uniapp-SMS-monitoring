@@ -1,8 +1,11 @@
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$source = [System.IO.File]::ReadAllText("$projectRoot\utils\etcSmsStore.js", [System.Text.UTF8Encoding]::new($false))
-$source = $source -replace "export function ", "function "
+$storeSource = [System.IO.File]::ReadAllText("$projectRoot\utils\etcSmsStore.js", [System.Text.UTF8Encoding]::new($false))
+$storeSource = $storeSource -replace "export function ", "function "
+$listenerSource = [System.IO.File]::ReadAllText("$projectRoot\utils\smsListener.js", [System.Text.UTF8Encoding]::new($false))
+$listenerSource = $listenerSource -replace "import \{ getEtcSmsRecords, saveEtcSms \} from './etcSmsStore.js'\r?\n", ""
+$listenerSource = $listenerSource -replace "export function ", "function "
 
 $check = @'
 const writes = new Map()
@@ -12,7 +15,9 @@ const assert = (condition, message) => {
 globalThis.uni = {
   getStorageSync(key) { return writes.get(key) || '' },
   setStorageSync(key, value) { writes.set(key, value) },
-  removeStorageSync(key) { writes.delete(key) }
+  removeStorageSync(key) { writes.delete(key) },
+  $emit(event, payload) { writes.set(`event:${event}`, payload) },
+  showToast() {}
 }
 
 const raw = '\u5c0a\u656c\u7684ETC\u5ba2\u6237\uff1a\u60a8\u597d\uff01\u60a8\u7684\u8f66\u8f86\uff08****9R0\uff09\u4e8e2025\u5e7411\u670830\u65e5\u5728\u6e56\u5357\u704c\u6eaa\u7ad9\u9a76\u5165\uff0c\u81f3\u6e56\u5357\u957f\u6c99\u897f\u7ad9\u9a76\u51fa\uff0c\u5171\u8ba1\u6d88\u8d3971.85\u5143\u3002\u3010\u5de5\u5546\u94f6\u884c\u3011'
@@ -51,12 +56,16 @@ assert(saveEtcSms({ sender: '13800138000', body: 'ETC fake', receivedAt: Date.no
 assert(getEtcSmsRecords().length === 3, 'non-etc not stored')
 assert(saveEtcSms({ sender: '95588', body: 'PASS notice', receivedAt: Date.now() }, { senderPrefix: '955', keywords: ['PASS'] }).rawText === 'PASS notice', 'custom keyword stored')
 assert(getEtcSmsRecords().length === 4, 'custom keyword record stored')
+writes.clear()
+assert(simulateSmsReceived({ sender: '13800138000', body: 'ETC fake' }) === null, 'mock private phone rejected')
+assert(simulateSmsReceived({ sender: '10690000', body: 'ETC mock' }).rawText === 'ETC mock', 'mock official etc accepted')
+assert(writes.has('event:sms:received'), 'mock emits sms event')
 console.log('ETC store check passed')
 '@
 
 $tempCheck = "$PSScriptRoot\.etc-sms-check.mjs"
 try {
-	[System.IO.File]::WriteAllText($tempCheck, ($source + "`n" + $check), [System.Text.UTF8Encoding]::new($false))
+	[System.IO.File]::WriteAllText($tempCheck, ($storeSource + "`n" + $listenerSource + "`n" + $check), [System.Text.UTF8Encoding]::new($false))
 	node $tempCheck
 	if ($LASTEXITCODE -ne 0) {
 		throw "ETC store check failed"

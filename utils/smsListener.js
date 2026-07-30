@@ -84,6 +84,17 @@ export function getListeningContent(receivedDateFrom) {
 	}
 }
 
+export function simulateSmsReceived({ sender, body, receivedAt } = {}) {
+	const timestamp = Number(receivedAt) || Date.now()
+	return handleSmsReceived({
+		id: `mock-${timestamp}`,
+		sender: sender || '',
+		body: body || '',
+		time: formatTime(timestamp),
+		receivedAt: timestamp
+	})
+}
+
 function refreshPlatformText() {
 	// #ifdef APP-PLUS
 	platformText = uni.getSystemInfoSync().platform === 'android' ? 'Android App' : '非 Android'
@@ -143,11 +154,12 @@ function handleSmsIntent(intent) {
 
 function handleSmsReceived(sms) {
 	const etcRecord = saveEtcSms(sms, listenerOptions)
-	if (!etcRecord) return
+	if (!etcRecord) return null
 
 	uni.$emit('sms:received', toSmsMessage(etcRecord))
 	uni.$emit('etc-sms:received', etcRecord)
 	uni.showToast({ title: '收到ETC短信', icon: 'none' })
+	return etcRecord
 }
 
 function formatTime(timestamp) {

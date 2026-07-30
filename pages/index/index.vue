@@ -16,6 +16,12 @@
 				<button class="secondary" :disabled="!listening" @click="stopListening">停止监听</button>
 			</view>
 
+			<view v-if="isDev" class="mock-box">
+				<input v-model="mockSender" class="mock-input" placeholder="模拟发送方，例如 10690000" />
+				<textarea v-model="mockBody" class="mock-textarea" placeholder="模拟短信内容，需包含 ETC" />
+				<button class="secondary" @click="sendMockSms">模拟收到短信</button>
+			</view>
+
 			<view class="logs">
 				<view v-if="!logs.length" class="empty">暂无 ETC 短信</view>
 				<view v-for="item in logs" :key="item.id" class="log-item">
@@ -35,14 +41,18 @@
 	import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
 	import {
 		getListeningContent,
+		simulateSmsReceived,
 		startListening as startSmsListening,
 		stopListening as stopSmsListening
 	} from '@/utils/smsListener.js'
 
+	const isDev = process.env.NODE_ENV === 'development'
 	const listening = ref(false)
 	const logs = ref([])
 	const permissionText = ref('未申请')
 	const platformText = ref('非 Android App')
+	const mockSender = ref('10690000')
+	const mockBody = ref('尊敬的ETC客户：您好！ETC测试短信')
 
 	onLoad(() => {
 		syncState()
@@ -64,6 +74,17 @@
 
 	function stopListening() {
 		stopSmsListening()
+		syncState()
+	}
+
+	function sendMockSms() {
+		const record = simulateSmsReceived({
+			sender: mockSender.value,
+			body: mockBody.value
+		})
+		if (!record) {
+			uni.showToast({ title: '未命中过滤规则', icon: 'none' })
+		}
 		syncState()
 	}
 
@@ -131,6 +152,30 @@
 		grid-template-columns: 1fr 1fr;
 		gap: 16rpx;
 		margin-bottom: 32rpx;
+	}
+
+	.mock-box {
+		display: flex;
+		flex-direction: column;
+		gap: 16rpx;
+		margin-bottom: 32rpx;
+	}
+
+	.mock-input,
+	.mock-textarea {
+		width: 100%;
+		padding: 20rpx 24rpx;
+		border: 1rpx solid #d1d5db;
+		border-radius: 8rpx;
+		background: #ffffff;
+		box-sizing: border-box;
+		color: #111827;
+		font-size: 28rpx;
+	}
+
+	.mock-textarea {
+		height: 180rpx;
+		line-height: 1.45;
 	}
 
 	button {
