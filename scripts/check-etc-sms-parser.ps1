@@ -19,6 +19,11 @@ globalThis.uni = {
   $emit(event, payload) { writes.set(`event:${event}`, payload) },
   showToast() {}
 }
+globalThis.plus = {
+  android: {
+    importClass(value) { return value }
+  }
+}
 
 const raw = '\u5c0a\u656c\u7684ETC\u5ba2\u6237\uff1a\u60a8\u597d\uff01\u60a8\u7684\u8f66\u8f86\uff08****9R0\uff09\u4e8e2025\u5e7411\u670830\u65e5\u5728\u6e56\u5357\u704c\u6eaa\u7ad9\u9a76\u5165\uff0c\u81f3\u6e56\u5357\u957f\u6c99\u897f\u7ad9\u9a76\u51fa\uff0c\u5171\u8ba1\u6d88\u8d3971.85\u5143\u3002\u3010\u5de5\u5546\u94f6\u884c\u3011'
 assert(parseEtcSms(raw).rawText === raw, 'parse etc raw')
@@ -63,6 +68,14 @@ registered = true
 assert(simulateSmsReceived({ sender: '13800138000', body: 'ETC fake' }) === null, 'mock private phone rejected')
 assert(simulateSmsReceived({ sender: '10690000', body: 'ETC mock' }).rawText === 'ETC mock', 'mock official etc accepted')
 assert(writes.has('event:sms:received'), 'mock emits sms event')
+writes.clear()
+handleSmsIntent({
+  getAction() { return MOCK_SMS_ACTION },
+  getStringExtra(key) {
+    return key === 'sender' ? '10690000' : 'ETC adb mock'
+  }
+})
+assert(writes.has('event:sms:received'), 'adb mock action emits sms event')
 console.log('ETC store check passed')
 '@
 

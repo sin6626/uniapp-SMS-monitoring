@@ -40,6 +40,12 @@
 
 开发环境下，Demo 页面会显示模拟短信输入区。先点击“开始监听”，再自定义发送方和短信内容，点击“模拟收到短信”会调用 `simulateSmsReceived()`，后续仍走同一套发送方前缀、关键词、本地缓存和页面事件逻辑。
 
+雷电模拟器不支持标准 `adb emu sms send` 时，开发环境也可以先开启监听，再用 adb 发送测试广播：
+
+```powershell
+& 'D:\moniqi\leidian\LDPlayer9\adb.exe' -s 127.0.0.1:5555 shell am broadcast -a uniapp.smsmonitoring.MOCK_SMS -p io.dcloud.HBuilder --es sender 10690000 --es body "尊敬的ETC客户：您好！ETC测试短信"
+```
+
 切换到底部 tabBar 的“记录”或“状态”页面后，页面同样读取 `getListeningContent()`，用于验证离开监听页后是否还能收到短信。
 
 也可以从“状态”tab 进入普通测试页 A，再继续进入 B、C。普通页面只监听 `sms:received` 事件并读取 `getListeningContent()`，不会调用 `stopListening()`，用于验证 `navigateTo` 页面栈变化时短信监听是否还在。

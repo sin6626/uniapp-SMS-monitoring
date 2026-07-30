@@ -2,6 +2,7 @@ import { getEtcSmsRecords, saveEtcSms } from './etcSmsStore.js'
 
 const SMS_PERMISSION = 'android.permission.RECEIVE_SMS'
 const SMS_RECEIVED_ACTION = 'android.provider.Telephony.SMS_RECEIVED'
+const MOCK_SMS_ACTION = 'uniapp.smsmonitoring.MOCK_SMS'
 const DEFAULT_LISTENER_OPTIONS = {
 	senderPrefix: '106',
 	keywords: ['ETC']
@@ -44,6 +45,9 @@ export function startListening(options) {
 
 		smsFilter = new IntentFilter()
 		smsFilter.addAction(SMS_RECEIVED_ACTION)
+		if (isDevelopment()) {
+			smsFilter.addAction(MOCK_SMS_ACTION)
+		}
 		smsReceiver = plus.android.implements('io.dcloud.feature.internal.reflect.BroadcastReceiver', {
 			onReceive: (context, intent) => {
 				handleSmsIntent(intent)
@@ -137,7 +141,18 @@ function requestSmsPermission() {
 
 function handleSmsIntent(intent) {
 	plus.android.importClass(intent)
-	if (intent.getAction() !== SMS_RECEIVED_ACTION) return
+	const action = intent.getAction()
+	if (action === MOCK_SMS_ACTION) {
+		handleSmsReceived({
+			id: `adb-mock-${Date.now()}`,
+			sender: intent.getStringExtra('sender'),
+			body: intent.getStringExtra('body'),
+			time: formatTime(Date.now()),
+			receivedAt: Date.now()
+		})
+		return
+	}
+	if (action !== SMS_RECEIVED_ACTION) return
 
 	const SmsIntents = plus.android.importClass('android.provider.Telephony$Sms$Intents')
 	const messages = SmsIntents.getMessagesFromIntent(intent) || []
@@ -178,4 +193,8 @@ function toSmsMessage(record) {
 		time: formatTime(record.receivedAt),
 		etcRecord: record
 	}
+}
+
+function isDevelopment() {
+	return typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
 }

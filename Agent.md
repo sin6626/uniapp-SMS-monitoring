@@ -20,6 +20,7 @@
 - `getListeningContent('2025年11月30日')` / `getListeningContent('2025-11-30')` 会按短信收到时间 `receivedAt` 返回当天及之后的 ETC 缓存记录，方便同步给后端。
 - `pages/records/index` 顶部有日期输入框，用于测试 `getListeningContent(date)` 的筛选结果。
 - `pages/index/index` 在开发环境显示模拟短信输入区；需要先开始监听，再调用 `simulateSmsReceived()` 测试发送方、正文过滤和缓存展示。
+- 雷电模拟器不支持 `adb emu sms send` 时，开发环境注册 `uniapp.smsmonitoring.MOCK_SMS` 测试广播；先开始监听，再用 adb broadcast 传 `sender` 和 `body`。
 - 根目录 `ETC_SMS_UTILS_USAGE.md` 是给同事看的工具使用说明。
 - ETC 解析检查脚本：`scripts/check-etc-sms-parser.ps1`。
 
