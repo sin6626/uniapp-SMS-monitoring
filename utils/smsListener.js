@@ -85,6 +85,8 @@ export function getListeningContent(receivedDateFrom) {
 }
 
 export function simulateSmsReceived({ sender, body, receivedAt } = {}) {
+	if (!registered) return null
+
 	const timestamp = Number(receivedAt) || Date.now()
 	return handleSmsReceived({
 		id: `mock-${timestamp}`,

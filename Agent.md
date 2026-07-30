@@ -19,7 +19,7 @@
 - ETC 短信缓存逻辑在 `utils/etcSmsStore.js`，使用日期索引 `etc_sms_record_dates` 加日期分桶 `etc_sms_records:YYYY-MM-DD`，value 保存当天 ETC 原文记录数组。
 - `getListeningContent('2025年11月30日')` / `getListeningContent('2025-11-30')` 会按短信收到时间 `receivedAt` 返回当天及之后的 ETC 缓存记录，方便同步给后端。
 - `pages/records/index` 顶部有日期输入框，用于测试 `getListeningContent(date)` 的筛选结果。
-- `pages/index/index` 在开发环境显示模拟短信输入区，调用 `simulateSmsReceived()` 测试发送方、正文过滤和缓存展示。
+- `pages/index/index` 在开发环境显示模拟短信输入区；需要先开始监听，再调用 `simulateSmsReceived()` 测试发送方、正文过滤和缓存展示。
 - 根目录 `ETC_SMS_UTILS_USAGE.md` 是给同事看的工具使用说明。
 - ETC 解析检查脚本：`scripts/check-etc-sms-parser.ps1`。
 

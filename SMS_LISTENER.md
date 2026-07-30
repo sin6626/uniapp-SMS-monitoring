@@ -20,7 +20,7 @@
 - `stopListening()`：注销短信广播监听。
 - `getListeningContent()`：获取当前监听状态、权限状态、平台信息和最近收到的短信列表。
 
-另有一个开发调试方法 `simulateSmsReceived()`，Demo 页面在开发环境用它模拟收到短信，方便不用真实 106 通道也能测试过滤和缓存。
+另有一个开发调试方法 `simulateSmsReceived()`，Demo 页面在开发环境用它模拟收到短信，方便不用真实 106 通道也能测试过滤和缓存；它要求先开启监听。
 
 ## 实现流程
 
@@ -38,7 +38,7 @@
 12. 保存后触发 `uni.$emit('sms:received', sms)` 与 `uni.$emit('etc-sms:received', record)`。
 13. Demo 页面监听事件后调用 `getListeningContent()` 刷新展示。
 
-开发环境下，Demo 页面会显示模拟短信输入区。点击“模拟收到短信”会调用 `simulateSmsReceived()`，后续仍走同一套发送方前缀、关键词、本地缓存和页面事件逻辑。
+开发环境下，Demo 页面会显示模拟短信输入区。先点击“开始监听”，再自定义发送方和短信内容，点击“模拟收到短信”会调用 `simulateSmsReceived()`，后续仍走同一套发送方前缀、关键词、本地缓存和页面事件逻辑。
 
 切换到底部 tabBar 的“记录”或“状态”页面后，页面同样读取 `getListeningContent()`，用于验证离开监听页后是否还能收到短信。
 

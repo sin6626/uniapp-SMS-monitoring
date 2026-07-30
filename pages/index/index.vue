@@ -17,9 +17,19 @@
 			</view>
 
 			<view v-if="isDev" class="mock-box">
-				<input v-model="mockSender" class="mock-input" placeholder="模拟发送方，例如 10690000" />
-				<textarea v-model="mockBody" class="mock-textarea" placeholder="模拟短信内容，需包含 ETC" />
-				<button class="secondary" @click="sendMockSms">模拟收到短信</button>
+				<input
+					:value="mockSender"
+					class="mock-input"
+					placeholder="模拟发送方，例如 10690000"
+					@input="onMockSenderInput"
+				/>
+				<textarea
+					:value="mockBody"
+					class="mock-textarea"
+					placeholder="模拟短信内容，需包含 ETC"
+					@input="onMockBodyInput"
+				/>
+				<button class="secondary" :disabled="!listening" @click="sendMockSms">模拟收到短信</button>
 			</view>
 
 			<view class="logs">
@@ -78,6 +88,11 @@
 	}
 
 	function sendMockSms() {
+		if (!listening.value) {
+			uni.showToast({ title: '请先开始监听', icon: 'none' })
+			return
+		}
+
 		const record = simulateSmsReceived({
 			sender: mockSender.value,
 			body: mockBody.value
@@ -86,6 +101,14 @@
 			uni.showToast({ title: '未命中过滤规则', icon: 'none' })
 		}
 		syncState()
+	}
+
+	function onMockSenderInput(event) {
+		mockSender.value = event.detail.value
+	}
+
+	function onMockBodyInput(event) {
+		mockBody.value = event.detail.value
 	}
 
 	function syncState() {

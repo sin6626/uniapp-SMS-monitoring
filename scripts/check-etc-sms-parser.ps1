@@ -57,6 +57,9 @@ assert(getEtcSmsRecords().length === 3, 'non-etc not stored')
 assert(saveEtcSms({ sender: '95588', body: 'PASS notice', receivedAt: Date.now() }, { senderPrefix: '955', keywords: ['PASS'] }).rawText === 'PASS notice', 'custom keyword stored')
 assert(getEtcSmsRecords().length === 4, 'custom keyword record stored')
 writes.clear()
+registered = false
+assert(simulateSmsReceived({ sender: '10690000', body: 'ETC mock' }) === null, 'mock needs active listener')
+registered = true
 assert(simulateSmsReceived({ sender: '13800138000', body: 'ETC fake' }) === null, 'mock private phone rejected')
 assert(simulateSmsReceived({ sender: '10690000', body: 'ETC mock' }).rawText === 'ETC mock', 'mock official etc accepted')
 assert(writes.has('event:sms:received'), 'mock emits sms event')
